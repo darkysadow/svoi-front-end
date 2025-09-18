@@ -6,6 +6,8 @@ import { LanguageProvider } from "@/contexts/language-context"
 import { CustomCursor } from "@/components/custom-cursor"
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
+import { AuthProvider } from "@/contexts/auth-context"
+import { CartProvider } from "@/contexts/cart-context"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,11 +46,15 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <LanguageProvider>
-            <QuestProvider>
-              {children}
-              <CustomCursor />
-              <Toaster />
-            </QuestProvider>
+            <AuthProvider>
+              <CartProvider>
+                <QuestProvider>
+                  {children}
+                  <CustomCursor />
+                  <Toaster />
+                </QuestProvider>
+              </CartProvider>
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>
