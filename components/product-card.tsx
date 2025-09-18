@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ShoppingCart, Eye } from "lucide-react"
-import type { Product } from "@/lib/product-data"
+import { ProductResponse, ProductVariant } from "@/hooks/use-season"
 
 interface ProductCardProps {
-  product: Product
+  product: ProductResponse
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -23,26 +23,25 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCartStore()
   const { language, t } = useLanguageStore()
 
-  const discountPercentage = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discountPercentage = product.discountedPrice
+    ? Math.round(((product.discountedPrice - product.price) / product.discountedPrice) * 100)
     : 0
 
   const handleQuickAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
 
-    const defaultColor = product.variants?.colors?.[0]?.name || "Default"
-    const defaultSize = product.variants?.sizes?.[0] || "M"
+    const defaultColor = product.variant[0].color || "Default"
+    const defaultSize = product.variant[0].size || "M"
 
     addItem({
-      id: product.id,
+      id: product.documentId,
       name: product.name,
       price: product.price,
-      image: product.image,
+      discountedPrice: product.discountedPrice,
+      image: product.photo?.[0]?.url || '',
       color: defaultColor,
       size: defaultSize,
-      season: product.season,
-      series: product.series,
       quantity: 1,
     })
   }
@@ -60,6 +59,38 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   }
 
+  const productPhotoUrl = product.photo?.[0] ?
+    process.env.NEXT_PUBLIC_CMS_ENDPOINT + product.photo[0].url :
+    "/placeholder-product.svg"
+
+  function countUniqueColorsAndSizes(variants: ProductVariant[]) {
+    const colorsSet = new Set<string>()
+    const sizesSet = new Set<string>()
+
+    if (!variants) {
+      return {
+        colors: 1,
+        sizes: 1
+      }
+    }
+
+    for (const { color, size } of variants) {
+      if (color) {
+        colorsSet.add(color.trim().toLowerCase())
+      }
+      if (size) {
+        sizesSet.add(size.trim().toUpperCase())
+      }
+    }
+
+    return {
+      colors: colorsSet.size,
+      sizes: sizesSet.size,
+    }
+  }
+
+  const { colors, sizes } = countUniqueColorsAndSizes(product.variant);
+
   return (
     <Card
       className="product-card group relative overflow-hidden border-border bg-card hover:bg-card/80 transition-all duration-300 cursor-pointer"
@@ -69,26 +100,18 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-0">
         <div className="relative aspect-[3/4] overflow-hidden">
           <Image
-            src={product.image || "/placeholder.svg"}
+            src={productPhotoUrl}
             alt={product.name}
             fill
             className="product-image object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              console.log("[v0] Image failed to load:", product.image, "for product:", product.name)
-              const target = e.target as HTMLImageElement
-              target.src = "/placeholder.svg?height=400&width=300&text=" + encodeURIComponent(product.name)
-            }}
-            onLoad={() => {
-              console.log("[v0] Image loaded successfully:", product.image, "for product:", product.name)
-            }}
             priority={false}
             unoptimized={true}
           />
 
           <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
-            {product.badges?.map((badge) => (
-              <Badge key={badge} variant={badge === "Limited" ? "destructive" : "secondary"} className="text-xs">
-                {getBrandedBadge(badge)}
+            {product.tags?.map((badge) => (
+              <Badge key={badge.name + 1} variant={badge.name === "Limited" ? "destructive" : "secondary"} className="text-xs">
+                {getBrandedBadge(badge.name)}
               </Badge>
             ))}
             {discountPercentage > 0 && (
@@ -99,12 +122,11 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <div
-            className={`absolute inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center gap-2 transition-all duration-300 z-20 ${
-              isHovered ? "opacity-100 visible" : "opacity-0 invisible"
-            }`}
+            className={`absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center gap-2 transition-all duration-300 z-20 ${isHovered ? "opacity-100 visible" : "opacity-0 invisible"
+              }`}
           >
-            <Button size="sm" asChild className="cursor-pointer hover:bg-red-500/10 hover:border-red-500">
-              <Link href={`/product/${product.id}`}>
+            <Button size="sm" asChild className="cursor-pointer w-40 hover:bg-red-500/10 hover:border-red-500">
+              <Link href={`/product/${product.slug}`}>
                 <Eye className="h-4 w-4 mr-2" />
                 {t("product.viewProduct")}
               </Link>
@@ -113,7 +135,7 @@ export function ProductCard({ product }: ProductCardProps) {
               size="sm"
               variant="secondary"
               onClick={handleQuickAddToCart}
-              className="cursor-pointer hover:bg-red-500/10 hover:border-red-500"
+              className="cursor-pointer hover:bg-red-500/10 w-40 hover:border-red-500"
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
               {t("product.addToCart")}
@@ -122,27 +144,24 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <div className="p-4 space-y-2">
-          <div className="text-xs text-muted-foreground">
-            {product.season} • {product.series}
-          </div>
 
           <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-red-500 transition-colors cursor-pointer">
-            <Link href={`/product/${product.id}`}>{product.name}</Link>
+            <Link href={`/product/${product.slug}`}>{product.name}</Link>
           </h3>
 
           <div className="flex items-center gap-2">
-            <span className="font-bold text-primary">${product.price}</span>
-            {product.originalPrice && (
-              <span className="text-sm text-muted-foreground line-through">${product.originalPrice}</span>
+            <span className="font-bold text-primary">${product.discountedPrice ? product.discountedPrice : product.price}</span>
+            {product.discountedPrice && (
+              <span className="text-sm text-muted-foreground line-through">${product.price}</span>
             )}
           </div>
 
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              {product.variants?.colors?.length || 0} {t("colors")}
+              {colors || 0} {t("colors")}
             </span>
             <span>
-              {product.variants?.sizes?.length || 0} {t("sizes")}
+              {sizes || 0} {t("sizes")}
             </span>
           </div>
         </div>

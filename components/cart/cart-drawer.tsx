@@ -13,6 +13,10 @@ export function CartDrawer() {
   const { items, itemCount, total, updateQuantity, removeItem, clearCart } = useCartStore()
   const { t } = useLanguageStore()
 
+  const getProductPhotoUrl = (item?: string) => item ?
+    process.env.NEXT_PUBLIC_CMS_ENDPOINT + item :
+    "/placeholder-product.svg"
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -56,7 +60,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <>
-              <div className="flex-1 overflow-y-auto py-2 space-y-3 min-h-0">
+              <div className="flex-1 overflow-y-auto py-2 space-y-3 min-h-0 px-6">
                 {items.map((item) => (
                   <div
                     key={`${item.id}-${item.color}-${item.size}`}
@@ -64,7 +68,7 @@ export function CartDrawer() {
                   >
                     <div className="relative w-16 h-16 flex-shrink-0">
                       <Image
-                        src={item.image || "/placeholder.svg"}
+                        src={getProductPhotoUrl(item.image)}
                         alt={item.name}
                         fill
                         className="object-cover rounded"
@@ -75,9 +79,6 @@ export function CartDrawer() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <h4 className="font-semibold text-sm line-clamp-2">{item.name}</h4>
-                          <p className="text-xs text-muted-foreground">
-                            {item.season} • {item.series}
-                          </p>
                           <p className="text-xs text-muted-foreground">
                             {item.color} • {item.size}
                           </p>
@@ -115,14 +116,14 @@ export function CartDrawer() {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <span className="font-semibold text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="font-semibold text-primary">${((item.discountedPrice ? item.discountedPrice : item.price) * item.quantity).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex-shrink-0 border-t border-border pt-6 mt-4 space-y-6 bg-background/50 backdrop-blur-sm rounded-t-lg -mx-6 px-6 pb-2">
+              <div className="flex-shrink-0 border-t border-border pt-6 mt-4 space-y-6 bg-background/50 backdrop-blur-sm rounded-t-lg px-6 pb-2">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-2">
                     <span className="text-base font-medium text-muted-foreground">Subtotal</span>

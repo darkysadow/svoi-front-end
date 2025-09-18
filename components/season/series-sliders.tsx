@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { useSeason } from "@/hooks/use-season"
+import { ProductCard } from "../product-card"
 
 interface SeriesSlidersProps {
   seasonSlug: string
@@ -72,21 +73,17 @@ export function SeriesSliders({ seasonSlug }: SeriesSlidersProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-bold font-serif">{drop.name}</h2>
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                  {season.isActive ? t("seasons.live") : t("seasons.ended")}
-                </Badge>
+                {drop.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {drop.tags.map((tag, tagIndex) => (
+                      <Badge key={tagIndex} variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
               <p className="text-muted-foreground text-sm max-w-md">{drop.description}</p>
-
-              {drop.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {drop.tags.map((tag, tagIndex) => (
-                    <Badge key={tagIndex} variant="outline" className="text-xs">
-                      {tag.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
 
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>
@@ -109,38 +106,12 @@ export function SeriesSliders({ seasonSlug }: SeriesSlidersProps) {
 
           <div
             id={`drop-${index}`}
-            className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+            className="flex gap-6 overflow-x-auto scrollbar-hide pt-1 pb-4"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {drop.products.map((product, productIndex) => (
-              <div key={productIndex} className="flex-shrink-0 w-64">
-                <div className="bg-card border border-border rounded-lg p-4 space-y-3">
-                  <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
-                    <span className="text-muted-foreground text-sm">Product Image</span>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">{product.name}</h3>
-                    <div className="flex items-center gap-2">
-                      {product.discountedPrice ? (
-                        <>
-                          <span className="text-lg font-bold">${product.discountedPrice}</span>
-                          <span className="text-sm text-muted-foreground line-through">${product.price}</span>
-                        </>
-                      ) : (
-                        <span className="text-lg font-bold">${product.price}</span>
-                      )}
-                    </div>
-                    {product.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {product.tags.map((tag, tagIndex) => (
-                          <Badge key={tagIndex} variant="secondary" className="text-xs">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <div key={product.documentId} className="flex-shrink-0 w-64">
+                <ProductCard key={productIndex} product={product} />
               </div>
             ))}
           </div>

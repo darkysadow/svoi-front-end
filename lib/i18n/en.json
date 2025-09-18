@@ -278,6 +278,8 @@
     "dropped": "Dropped",
     "collections": "Collections",
     "totalPieces": "Total Pieces",
+    "products": "products",
+    "expires": "Expires on",
     "remaining": "remaining",
     "progress": "Progress",
     "noCollectionsAvailable": "No collections available for this drop.",

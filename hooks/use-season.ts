@@ -27,8 +27,20 @@ const GET_SEASON_BY_SLUG_QUERY = `
           name
         }
         products {
+          documentId
           name
           price
+          slug
+          variant {
+            color
+            quantity
+            size
+            id
+          }
+          photo {
+            alternativeText
+            url
+          }
           discountedPrice
           sliderPosition
           tags {
@@ -50,11 +62,27 @@ interface Tag {
   name: string
 }
 
-interface Product {
+export interface ProductVariant {
+  color: string
+  quantity: number
+  size: string
+  id: string
+}
+
+interface ProductPhoto {
+  alternativeText?: string
+  url: string
+}
+
+export interface ProductResponse {
+  documentId: string
   name: string
   price: number
+  slug: string
   discountedPrice?: number
   sliderPosition?: number
+  photo?: ProductPhoto[]
+  variant: ProductVariant[]
   tags: Tag[]
 }
 
@@ -62,7 +90,7 @@ interface Drop {
   name: string
   description: string
   tags: Tag[]
-  products: Product[]
+  products: ProductResponse[]
 }
 
 interface Banner {

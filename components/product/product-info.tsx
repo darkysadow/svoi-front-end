@@ -10,39 +10,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShoppingCart, Minus, Plus, Truck, Shield, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { UpsellEngine } from "@/components/upsell/upsell-engine"
-import type { Product } from "@/lib/product-data"
+import { Product } from "@/hooks/use-product"
 
 interface ProductInfoProps {
   product: Product
 }
 
 export function ProductInfo({ product }: ProductInfoProps) {
-  const [selectedColor, setSelectedColor] = useState(product.variants.colors[0]?.name || "")
-  const [selectedSize, setSelectedSize] = useState("")
   const [quantity, setQuantity] = useState(1)
 
   const { addItem } = useCartStore()
   const { t } = useLanguageStore()
 
-  const discountPercentage = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+  const discountPercentage = product.discountedPrice
+    ? Math.round(((product.discountedPrice - product.price) / product.discountedPrice) * 100)
     : 0
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
+    /* if (!selectedSize) {
       toast.error(t("errors.selectSize"))
       return
-    }
+    } */
 
     addItem({
-      id: product.id,
+      id: product.documentId,
       name: product.name,
       price: product.price,
-      image: product.images?.[0] || "/placeholder.svg",
-      color: selectedColor,
-      size: selectedSize,
-      season: product.season,
-      series: product.series,
+      image: product?.photo?.url || "/placeholder-product.svg",
+      color: "black",
+      size: "M",
       quantity,
     })
 
@@ -53,9 +49,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          {product.badges?.map((badge) => (
-            <Badge key={badge} variant={badge === "Limited" ? "destructive" : "secondary"}>
-              {badge}
+          {product.tags?.map((badge, index) => (
+            <Badge key={badge.name + index} variant={badge.name === "Limited" ? "destructive" : "secondary"}>
+              {badge.name}
             </Badge>
           ))}
           {discountPercentage > 0 && (
@@ -65,16 +61,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
           )}
         </div>
 
-        <div className="text-sm text-muted-foreground">
-          {product.season} • {product.series}
-        </div>
-
         <h1 className="text-3xl font-bold font-serif">{product.name}</h1>
 
         <div className="flex items-center gap-4">
-          <span className="text-2xl font-bold text-primary">${product.price}</span>
-          {product.originalPrice && (
-            <span className="text-xl text-muted-foreground line-through">${product.originalPrice}</span>
+          <span className="text-2xl font-bold text-primary">${product.discountedPrice || product.price}</span>
+          {product.discountedPrice && (
+            <span className="text-xl text-muted-foreground line-through">${product.price}</span>
           )}
         </div>
 
@@ -85,10 +77,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       <div className="space-y-3">
         <h3 className="font-semibold">
-          {t("product.color")}: {selectedColor}
+          {t("product.color")}: {/* {selectedColor} */} black
         </h3>
         <div className="flex gap-2">
-          {product.variants.colors.map((color) => (
+          {/* {product.variants.colors.map((color) => (
             <button
               key={color.name}
               className={`px-4 py-2 border rounded-md transition-all ${
@@ -100,11 +92,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
             >
               {color.name}
             </button>
-          ))}
+          ))} */}
         </div>
       </div>
 
-      <div className="space-y-3">
+      {/* <div className="space-y-3">
         <h3 className="font-semibold">
           {t("product.size")}: {selectedSize || t("product.selectSizePrompt")}
         </h3>
@@ -123,7 +115,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       <div className="space-y-3">
         <h3 className="font-semibold">{t("product.quantity")}</h3>
@@ -156,13 +148,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
 
       <div className="flex gap-3">
-        <Button className="flex-1" onClick={handleAddToCart} disabled={!product.inStock}>
+        <Button className="flex-1" onClick={handleAddToCart} disabled={!product.available}>
           <ShoppingCart className="h-4 w-4 mr-2" />
-          {product.inStock ? t("actions.addToCart") : t("status.outOfStock")}
+          {product.available ? t("actions.addToCart") : t("status.outOfStock")}
         </Button>
       </div>
 
-      <UpsellEngine placement="pdp" currentProductId={product.id} />
+      {/* <UpsellEngine placement="pdp" currentProductId={product.slug} /> */}
 
       <div className="space-y-3 p-4 bg-card rounded-lg border border-border">
         <div className="flex items-center gap-3 text-sm">
@@ -186,22 +178,22 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </TabsList>
         <TabsContent value="features" className="space-y-3">
           <ul className="space-y-2">
-            {product.features.map((feature, index) => (
+            {product.Features.map((feature, index) => (
               <li key={index} className="flex items-start gap-2 text-sm">
                 <span className="text-primary mt-1">•</span>
-                {feature}
+                {feature.feature}
               </li>
             ))}
           </ul>
         </TabsContent>
         <TabsContent value="specs" className="space-y-3">
           <div className="space-y-2">
-            {Object.entries(product.specifications).map(([key, value]) => (
+            {/* {Object.entries(product.specification).map(([key, value]) => (
               <div key={key} className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t(`product.${key.toLowerCase()}`)}</span>
                 <span>{value}</span>
               </div>
-            ))}
+            ))} */}
           </div>
         </TabsContent>
       </Tabs>

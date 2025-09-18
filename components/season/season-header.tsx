@@ -36,16 +36,6 @@ export function SeasonHeader({ slug }: SeasonHeaderProps) {
     )
   }
 
-  const getStatusBadge = (isActive: boolean) => {
-    if (isActive) {
-      return (
-        <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-sm">{t("seasons.liveDrop")}</Badge>
-      )
-    } else {
-      return <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-sm">{t("seasons.dropEnded")}</Badge>
-    }
-  }
-
   const formatDropDate = (dateString?: string) => {
     if (!dateString) return "TBA"
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -80,7 +70,15 @@ export function SeasonHeader({ slug }: SeasonHeaderProps) {
 
         <div className="relative h-full flex items-center justify-center text-center p-6">
           <div className="space-y-6 max-w-4xl">
-            {getStatusBadge(season.isActive)}
+            {season.tags.length > 0 && (
+              <div className="flex flex-wrap justify-center items-center gap-1">
+                {season.tags.map((tag, tagIndex) => (
+                  <Badge key={tagIndex} variant="outline" className="bg-green-500/20 text-sm text-green-400 border-green-500/30">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             <h1 className="text-4xl md:text-7xl font-bold glitch-text font-serif" data-text={season.name}>
               {season.name}
@@ -110,16 +108,6 @@ export function SeasonHeader({ slug }: SeasonHeaderProps) {
                 </span>
               </div>
             </div>
-
-            {season.tags.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2">
-                {season.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-white/70 border-white/30">
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>

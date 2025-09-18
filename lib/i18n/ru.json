@@ -297,6 +297,8 @@
     "dropped": "Дропнуто",
     "collections": "Коллекции",
     "totalPieces": "Всего вещей",
+    "expires": "Действителен до",
+    "products": "продуктов",
     "remaining": "осталось",
     "progress": "Прогресс",
     "noCollectionsAvailable": "Нет доступных коллекций для этого дропа.",
