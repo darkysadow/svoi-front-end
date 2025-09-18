@@ -135,16 +135,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
             variant="outline"
             size="sm"
             onClick={() => setQuantity(quantity + 1)}
-            disabled={quantity >= product.quantity}
             className="hover:bg-red-500/10 hover:border-red-500"
             aria-label={t("product.increaseQuantity")}
           >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {product.quantity} {t("product.itemsInStock")}
-        </p>
       </div>
 
       <div className="flex gap-3">
