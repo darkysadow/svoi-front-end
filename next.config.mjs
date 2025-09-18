@@ -8,6 +8,7 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: ['shining-cat-a6759516a6.strapiapp.com']
   },
 }
 

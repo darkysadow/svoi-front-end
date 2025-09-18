@@ -60,7 +60,7 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   const productPhotoUrl = product.photo?.[0] ?
-    process.env.NEXT_PUBLIC_CMS_ENDPOINT + product.photo[0].url :
+    product.photo[0].url :
     "/placeholder-product.svg"
 
   function countUniqueColorsAndSizes(variants: ProductVariant[]) {

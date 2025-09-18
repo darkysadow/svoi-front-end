@@ -14,7 +14,7 @@ export function CartDrawer() {
   const { t } = useLanguageStore()
 
   const getProductPhotoUrl = (item?: string) => item ?
-    process.env.NEXT_PUBLIC_CMS_ENDPOINT + item :
+    item :
     "/placeholder-product.svg"
 
   return (
