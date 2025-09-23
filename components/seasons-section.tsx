@@ -6,6 +6,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Clock, Users } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
+import { useSeasons } from "@/hooks/use-seasons"
+import { graphqlFetch } from "@/lib/graphql-client"
+import { ProductsInSeasonResponse } from "@/lib/graphql/queries/seasons"
+import { print } from "graphql"
+import { useEffect, useState } from "react"
 
 const seasons = [
   {
@@ -57,6 +62,8 @@ const seasons = [
 
 export function SeasonsSection() {
   const { t } = useLanguage()
+  const { seasons, loading, error } = useSeasons()
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -73,9 +80,23 @@ export function SeasonsSection() {
     }
   }
 
+  const getBrandedBadge = (badge: string) => {
+    switch (badge) {
+      case "Limited":
+        return t("limitedDrop")
+      case "New":
+        return t("newBadge")
+      case "Custom":
+        return t("customBadge")
+      default:
+        return badge
+    }
+  }
+
   const getClaimedPercentage = (claimed: number, total: number) => {
     return Math.round((claimed / total) * 100)
   }
+
 
   return (
     <section className="py-20 px-4">
@@ -91,85 +112,95 @@ export function SeasonsSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {seasons.map((season) => (
-            <Card
-              key={season.id}
-              className="group overflow-hidden border-border hover:border-primary/50 transition-all duration-300 relative"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={season.image || "/placeholder.svg"}
-                  alt={season.name}
-                  className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+          {seasons.map((season) => {
+            const startsOn = new Date(season.startsOn)
+            const today = new Date()
+            const totalProducts = 120 // Start quantity of products in season
+            const quantity = season.drops.reduce((sum, drop) => {
+              return (
+                sum +
+                drop.products.reduce((productSum, product) => {
+                  return (
+                    productSum +
+                    product.variant.reduce((vSum, v) => vSum + v.quantity, 0)
+                  )
+                }, 0)
+              )
+            }, 0) // products left
 
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  {getStatusBadge(season.status)}
-                  {season.isLimited && (
-                    <Badge variant="secondary" className="text-xs bg-primary/20 text-primary border-primary/30">
-                      {t("badges.limited")}
-                    </Badge>
-                  )}
-                </div>
+            const viewingNow = Math.floor(Math.random() * (80 - 50 + 1)) + 50
+            return (
+              <Card
+                key={season.documentId}
+                className="group overflow-hidden border-border hover:border-primary/50 transition-all duration-300 relative"
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={season.banner?.url || "/placeholder-product.svg"}
+                    alt={season.name}
+                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
 
-                <div className="absolute top-4 right-4 flex flex-col gap-1 text-right">
-                  <div className="text-xs text-white/80 bg-black/50 px-2 py-1 rounded">
-                    <Users className="inline w-3 h-3 mr-1" />
-                    {season.viewingNow} {t("status.viewing")}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    {season.tags?.map((badge) => (
+                      <Badge key={badge.name + 1} variant={badge.name === "Limited" ? "destructive" : "secondary"} className="text-xs">
+                        {getBrandedBadge(badge.name)}
+                      </Badge>
+                    ))}
                   </div>
-                  {season.status === "active" && (
-                    <div className="text-xs text-white/80 bg-black/50 px-2 py-1 rounded">
-                      {getClaimedPercentage(season.claimed, season.limitedQuantity)}% {t("status.claimed")}
-                    </div>
-                  )}
-                </div>
 
-                {season.status === "active" && (
+                  <div className="absolute top-4 right-4 flex flex-col gap-1 text-right">
+                    <div className="text-xs text-white/80 bg-black/50 px-2 py-1 rounded">
+                      <Users className="inline w-3 h-3 mr-1" />
+                      {viewingNow} {t("status.viewing")}
+                    </div>
+                    {season.isActive && (
+                      <div className="text-xs text-white/80 bg-black/50 px-2 py-1 rounded">
+                        {getClaimedPercentage(quantity, totalProducts)}% {t("status.claimed")}
+                      </div>
+                    )}
+                  </div>
+
+                {season.isActive && (
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
                     <div
                       className="h-full bg-primary transition-all duration-300"
-                      style={{ width: `${getClaimedPercentage(season.claimed, season.limitedQuantity)}%` }}
+                      style={{ width: `${getClaimedPercentage(quantity, totalProducts)}%` }}
                     />
                   </div>
-                )}
-              </div>
-
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{season.name}</h3>
-                  {season.status === "dropping-soon" && <Clock className="w-4 h-4 text-orange-400" />}
+                )} 
                 </div>
 
-                <p className="text-muted-foreground mb-4 text-sm">{t(`seasons.${season.descriptionKey}`)}</p>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{season.name}</h3>
+                    {startsOn >= today && <Clock className="w-4 h-4 text-orange-400" />}
+                  </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                  <span>
-                    {season.itemCount} {t("status.pieces")}
-                  </span>
-                  <span>
-                    {season.status === "dropping-soon"
-                      ? `${t("seasons.drops")} ${new Date(season.dropDate).toLocaleDateString()}`
-                      : `${season.limitedQuantity - season.claimed} ${t("status.left")}`}
-                  </span>
-                </div>
+                  <p className="text-muted-foreground mb-4 text-sm">{season.description}</p>
 
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+
+                    <span>{t("status.left")}</span>
+                    {startsOn >= today && <span>{`${t("seasons.drops")} ${new Date(season.startsOn).toLocaleDateString()}`}</span>}
+                  </div>
+                  
                 <Link href={`/season/${season.slug}`}>
                   <Button
                     className="w-full"
-                    disabled={season.status === "sold-out"}
-                    variant={season.status === "dropping-soon" ? "outline" : "default"}
+                    disabled={!season.isActive}
+                    variant={(startsOn <= today) ? "outline" : "default"}
                   >
-                    {season.status === "dropping-soon"
+                    {(startsOn <= today)
                       ? t("actions.notifyMe")
-                      : season.status === "sold-out"
-                        ? t("status.soldOut")
                         : t("actions.grabTheDrop")}
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       </div>
     </section>
