@@ -7,78 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Clock, Users } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { useSeasons } from "@/hooks/use-seasons"
-import { graphqlFetch } from "@/lib/graphql-client"
-import { ProductsInSeasonResponse } from "@/lib/graphql/queries/seasons"
-import { print } from "graphql"
-import { useEffect, useState } from "react"
-
-const seasons = [
-  {
-    id: 1,
-    name: "Season 1",
-    slug: "season-1",
-    descriptionKey: "season1Desc",
-    image: "/season-1-banner.png",
-    status: "active",
-    isNew: true,
-    itemCount: 24,
-    dropDate: "2024-01-15",
-    limitedQuantity: 100,
-    claimed: 67,
-    viewingNow: 23,
-    isLimited: true,
-  },
-  {
-    id: 2,
-    name: "Season 2",
-    slug: "season-2",
-    descriptionKey: "season2Desc",
-    image: "/season-2-banner.png",
-    status: "active",
-    isNew: false,
-    itemCount: 18,
-    dropDate: "2024-02-20",
-    limitedQuantity: 150,
-    claimed: 89,
-    viewingNow: 15,
-    isLimited: true,
-  },
-  {
-    id: 3,
-    name: "Mix Life",
-    slug: "mix-life",
-    descriptionKey: "mixLifeDesc",
-    image: "/placeholder.svg",
-    status: "dropping-soon",
-    isNew: true,
-    itemCount: 12,
-    dropDate: "2024-03-10",
-    limitedQuantity: 75,
-    claimed: 0,
-    viewingNow: 45,
-    isLimited: true,
-  },
-]
+import Preloader from "./ui/preloader"
 
 export function SeasonsSection() {
   const { t } = useLanguage()
   const { seasons, loading, error } = useSeasons()
 
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{t("status.liveNow")}</Badge>
-      case "dropping-soon":
-        return (
-          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">{t("status.droppingSoon")}</Badge>
-        )
-      case "sold-out":
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{t("status.soldOut")}</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+  if (!seasons || loading) {
+    return (
+      <section className="min-h-[50rem] relative">
+        <Preloader />
+      </section>
+    )
   }
+
+  const slicedSeasons = seasons?.slice(0, 3)
 
   const getBrandedBadge = (badge: string) => {
     switch (badge) {
@@ -112,7 +55,7 @@ export function SeasonsSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {seasons.map((season) => {
+          {slicedSeasons.map((season) => {
             const startsOn = new Date(season.startsOn)
             const today = new Date()
             const totalProducts = 120 // Start quantity of products in season

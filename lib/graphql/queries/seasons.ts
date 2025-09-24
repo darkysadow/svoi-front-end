@@ -1,4 +1,3 @@
-import { graphqlFetch } from "@/lib/graphql-client"
 import { gql } from "@apollo/client"
 
 export const GET_SEASONS_QUERY = gql`
@@ -59,23 +58,6 @@ export interface Season {
   tags: [] | {
     name: string
   }[]
-}
-
-export interface ProductQuantity {
-  documentId: string
-  drops: {
-    documentId: string
-    products: {
-      documentId: string
-      variant: {
-        quantity: number
-      }
-    }
-  }
-}
-
-export interface ProductsInSeasonResponse {
-  season: ProductQuantity
 }
 
 export interface SeasonsResponse {
