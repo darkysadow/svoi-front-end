@@ -38,8 +38,7 @@ export function FeaturedProducts() {
         <Preloader />
       </section>
     )
-  } 
-  console.log("featuredProducts", featuredProducts);
+  }
   
   const products = featuredProducts.products.length > 4 ? featuredProducts.products.slice(0, 4) : featuredProducts.products
   

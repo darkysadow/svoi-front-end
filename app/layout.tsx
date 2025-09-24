@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { CartProvider } from "@/contexts/cart-context"
+import Script from "next/script"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
+        <Script src={process.env.NEXT_PUBLIC_TIDIO_SRC} async />
       </body>
     </html>
   )

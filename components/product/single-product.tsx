@@ -9,10 +9,7 @@ interface SingleProductProps {
 }
 
 export function SingleProduct({ productSlug }: SingleProductProps) {
-  const { product, loading, error } = useProduct(productSlug)
-
-  console.log("product", product);
-  
+  const { product, loading, error } = useProduct(productSlug)  
 
   if (!product) return
 

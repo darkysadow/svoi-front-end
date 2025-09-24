@@ -143,7 +143,6 @@ export function useProduct(slug: string) {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    console.log('ping');
     if (!slug) {
       setLoading(false)
       return
