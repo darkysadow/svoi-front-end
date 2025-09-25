@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-function useDebounce(value: string, delay: number) {
+function useDebounce<T>(value: T, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(

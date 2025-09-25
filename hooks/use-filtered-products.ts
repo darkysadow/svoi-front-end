@@ -1,26 +1,27 @@
-"use client"
+'use client'
 
-import { useFilterStore } from "@/lib/stores/filter-store"
-import { useState, useEffect, useMemo } from "react"
-import useDebounce from "./use-debounce"
-import { graphqlFetch } from "@/lib/graphql-client"
-import { ProductResponse } from "./use-season"
+import { useFilterStore } from '@/lib/stores/filter-store'
+import { useState, useEffect, useMemo } from 'react'
+import useDebounce from './use-debounce'
+import { graphqlFetch } from '@/lib/graphql-client'
+import { ProductResponse } from './use-season'
 
 interface FilteredProductsResponse {
-    products: ProductResponse[]
+  products_connection: {
+    nodes: ProductResponse[]
+    pageInfo: {
+        page: number
+        pageSize: number
+        pageCount: number
+        total: number
+    }
+  }
+  
 }
 
 export function useFilteredProducts() {
-  const {
-    seasons,
-    series,
-    colors,
-    sizes,
-    tags,
-    priceRange,
-    searchQuery,
-    viewMode
-  } = useFilterStore()
+  const { seasons, series, colors, sizes, tags, priceRange, searchQuery, viewMode, sortBy } =
+    useFilterStore()
 
   const [products, setProducts] = useState<ProductResponse[]>([])
   const [loading, setLoading] = useState(false)
@@ -28,58 +29,77 @@ export function useFilteredProducts() {
   const [totalPages, setTotalPages] = useState(1)
 
   // debounce пошуку
-  const [debouncedSearch] = useDebounce(searchQuery, 500)
+  const debouncedSearch = useDebounce(searchQuery, 500)
 
   // побудова filters
-  const filters = useMemo(() => {
+  const { filters, sort } = useMemo(() => {
     const f: any = {}
-    if (seasons.length > 0) f.drops = { season: { shortName: { in: seasons } } }
-    if (series.length > 0) f.series = { in: series }
-    if (colors.length > 0) f.variants = { colors: { name: { in: colors } } }
-    if (sizes.length > 0) f.variants = { ...f.variants, sizes: { in: sizes } }
-    if (tags.length > 0) f.badges = { in: tags }
-    f.price = { between: priceRange }
+
+    // Variants: size + color
+    if (sizes.length > 0 || colors.length > 0) {
+      f.variant = {}
+
+      if (sizes.length > 0) {
+        f.variant.size = { size: { in: sizes } }
+      }
+
+      if (colors.length > 0) {
+        f.variant.color = { color: { in: colors } }
+      }
+    }
+
+    // Price filter
+    f.and = [
+      {
+        or: [
+          { discountedPrice: { between: priceRange } },
+          { discountedPrice: { null: true }, price: { between: priceRange } },
+        ],
+      },
+    ]
+
+    // Search filter
     if (debouncedSearch) {
-      f.or = [
-        { name: { containsi: debouncedSearch } },
-        { description: { containsi: debouncedSearch } },
-        { category: { containsi: debouncedSearch } },
-      ]
+      f.and.push({
+        or: [
+          { name: { containsi: debouncedSearch } },
+          { description: { containsi: debouncedSearch } },
+        ],
+      })
     }
-    return f
-  }, [seasons, series, colors, sizes, tags, priceRange, debouncedSearch])
 
-
-  /* OLD
-  
-  {
-    "filters": {
-        "season": {
-            "in": [
-                "Season 1"
+    let sortValue: string[] = []
+    switch (sortBy) {
+        case "newest":
+            sortValue = ["createdAt:desc"]
+            break
+        case "price-low":
+            sortValue = [
+                "price:asc",
             ]
-        },
-        "price": {
-            "between": [
-                0,
-                500
+            break
+        case "price-high":
+            sortValue = [
+                "price:desc",
             ]
-        }
-    },
-    "pagination": {
-        "page": 1,
-        "pageSize": 12
+            break
+        case "popular":
+            sortValue = ["popularity:desc"]
+            break
+        default:
+            sortValue = []
     }
-}
-  
-  */
+
+    return { filters: f, sort: sortValue }
+  }, [sizes, colors, seasons, series, priceRange, tags, sortBy, debouncedSearch])
 
   useEffect(() => {
     async function loadProducts() {
       setLoading(true)
       const query = `
             query GetProducts($filters: ProductFiltersInput, $pagination: PaginationArg, $sort: [String]) {
-                products(filters: $filters, pagination: $pagination, sort: $sort) {
+                products_connection(filters: $filters, pagination: $pagination, sort: $sort) {
+                  nodes {
                     documentId
                     name
                     price
@@ -103,6 +123,13 @@ export function useFilteredProducts() {
                     tags {
                         name
                     }
+                  }
+                  pageInfo {
+                    page
+                    pageSize
+                    pageCount
+                    total
+                  }
                 }
             }
         `
@@ -110,17 +137,14 @@ export function useFilteredProducts() {
       const { data, errors } = await graphqlFetch<FilteredProductsResponse>(query, {
         filters,
         pagination: { page: currentPage, pageSize: 12 },
+        sort
       })
 
       if (errors) {
         console.error(errors)
-      } else if (data) {
-        setProducts(
-          data.products
-        )
-        /* setTotalPages(data.products.meta.pagination.pageCount) */
-        console.log("data.products", data.products);
-        
+      } else if (data?.products_connection) {
+        setProducts(data.products_connection.nodes)
+        setTotalPages(data.products_connection.pageInfo?.pageCount || 1)
       }
       setLoading(false)
     }
@@ -134,6 +158,6 @@ export function useFilteredProducts() {
     currentPage,
     setCurrentPage,
     totalPages,
-    viewMode
+    viewMode,
   }
 }

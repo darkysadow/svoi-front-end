@@ -53,7 +53,8 @@ export const useFilterStore = create<FilterStore>()(
       setColors: (colors) => set({ colors }),
       setTags: (tags) => set({ tags }),
       setPriceRange: (priceRange) => set({ priceRange }),
-      setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setSearchQuery: (searchQuery) => {console.log("searchQuery", searchQuery)
+       set({ searchQuery })},
       setSortBy: (sortBy) => set({ sortBy }),
       setViewMode: (viewMode) => set({ viewMode }),
 

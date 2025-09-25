@@ -11,6 +11,7 @@ import { X, Filter } from "lucide-react"
 import { useFilterStore } from "@/lib/stores/filter-store"
 import { filtersToURLParams, urlParamsToFilters } from "@/lib/utils/url-filters"
 import { graphqlFetch } from "@/lib/graphql-client"
+import useDebounce from "@/hooks/use-debounce"
 
 
 const FILTERS_QUERY = `
@@ -117,14 +118,34 @@ export function ProductFilters() {
   const minValue = 0
   const maxValue = 500
 
+  const [localMin, setLocalMin] = useState(priceRange[0])
+  const [localMax, setLocalMax] = useState(priceRange[1])
+
+  const debouncedMin = useDebounce(localMin, 300);
+  const debouncedMax = useDebounce(localMax, 300);
+
+  useEffect(() => {
+    setPriceRange([debouncedMin, debouncedMax]);
+  }, [debouncedMin, debouncedMax, setPriceRange]);
+
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.min(Number(e.target.value), max - minGap)
-    setPriceRange([value, max])
+    const value = Math.min(Number(e.target.value), localMax - minGap)
+    setLocalMin(value)
   }
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Math.max(Number(e.target.value), min + minGap)
-    setPriceRange([min, value])
+    const value = Math.max(Number(e.target.value), localMin + minGap)
+    setLocalMax(value)
+  }
+
+  const handleDeleteBadge = (filter: string) => {
+    console.log("filter", filter);
+    
+    if (seasonOptions.includes(filter)) toggleFilter("seasons", filter)
+    else if (seriesOptions.includes(filter)) toggleFilter("series", filter)
+    else if (sizeOptions.includes(filter)) toggleFilter("sizes", filter)
+    else if (colorOptions.includes(filter)) toggleFilter("colors", filter)
+    else if (tagOptions.includes(filter)) toggleFilter("tags", filter)
   }
 
   return (
@@ -146,18 +167,9 @@ export function ProductFilters() {
           <Label className="text-sm font-medium">Active Filters</Label>
           <div className="flex flex-wrap gap-2">
             {activeFilters.map((filter) => (
-              <Badge key={filter} variant="secondary" className="flex items-center gap-1">
+              <Badge key={filter} variant="secondary" className="flex cursor-pointer items-center gap-1" onClick={() => handleDeleteBadge(filter)}>
                 {filter}
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => {
-                    if (seasonOptions.includes(filter)) toggleFilter("seasons", filter)
-                    else if (seriesOptions.includes(filter)) toggleFilter("series", filter)
-                    else if (sizeOptions.includes(filter)) toggleFilter("sizes", filter)
-                    else if (colorOptions.includes(filter)) toggleFilter("colors", filter)
-                    else if (tagOptions.includes(filter)) toggleFilter("tags", filter)
-                  }}
-                />
+                <X className="h-3 w-3" />
               </Badge>
             ))}
           </div>
@@ -173,15 +185,15 @@ export function ProductFilters() {
           <div
             className="absolute top-1/2 h-2 bg-red-600 rounded-lg -translate-y-1/2"
             style={{
-              left: `${(min / maxValue) * 100}%`,
-              right: `${100 - (max / maxValue) * 100}%`,
+              left: `${(localMin / maxValue) * 100}%`,
+              right: `${100 - (localMax / maxValue) * 100}%`,
             }}
           />
           <input
             type="range"
             min={minValue}
             max={maxValue}
-            value={min}
+            value={localMin}
             onChange={handleMinChange}
             className="absolute w-full top-0 h-2 bg-transparent appearance-none pointer-events-none
               [&::-webkit-slider-thumb]:appearance-none
@@ -205,7 +217,7 @@ export function ProductFilters() {
             type="range"
             min={minValue}
             max={maxValue}
-            value={max}
+            value={localMax}
             onChange={handleMaxChange}
             className="absolute w-full top-0 h-2 bg-transparent appearance-none pointer-events-none
               [&::-webkit-slider-thumb]:appearance-none
@@ -227,8 +239,8 @@ export function ProductFilters() {
           />
           </div>
           <div className="flex justify-between text-sm text-muted-foreground mt-4">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
+            <span>${localMin}</span>
+            <span>${localMax}</span>
           </div>
         </div>
       </div>
