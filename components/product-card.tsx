@@ -40,8 +40,8 @@ export function ProductCard({ product }: ProductCardProps) {
       price: product.price,
       discountedPrice: product.discountedPrice,
       image: product.photo?.[0]?.url || '',
-      color: defaultColor,
-      size: defaultSize,
+      color: defaultColor.color,
+      size: defaultSize.size,
       quantity: 1,
     })
   }
@@ -75,11 +75,11 @@ export function ProductCard({ product }: ProductCardProps) {
     }
 
     for (const { color, size } of variants) {
-      if (color) {
-        colorsSet.add(color.trim().toLowerCase())
+      if (color?.color) {
+        colorsSet.add(color.color.trim().toLowerCase())
       }
-      if (size) {
-        sizesSet.add(size.trim().toUpperCase())
+      if (size?.size) {
+        sizesSet.add(size.size.trim().toUpperCase())
       }
     }
 
