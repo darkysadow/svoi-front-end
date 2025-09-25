@@ -10,13 +10,12 @@ interface FilteredProductsResponse {
   products_connection: {
     nodes: ProductResponse[]
     pageInfo: {
-        page: number
-        pageSize: number
-        pageCount: number
-        total: number
+      page: number
+      pageSize: number
+      pageCount: number
+      total: number
     }
   }
-  
 }
 
 export function useFilteredProducts() {
@@ -31,9 +30,26 @@ export function useFilteredProducts() {
   // debounce пошуку
   const debouncedSearch = useDebounce(searchQuery, 500)
 
-  // побудова filters
   const { filters, sort } = useMemo(() => {
     const f: any = {}
+
+    if (seasons.length > 0) {
+      f.drops = {
+        season: {
+          shortName: { in: seasons },
+        },
+      }
+    }
+
+    // Drops (серії)
+    if (series.length > 0) {
+      f.drops = { ...f.drops, name: { in: series } }
+    }
+
+    // Tags
+    if (tags.length > 0) {
+      f.tags = { name: { in: tags } }
+    }
 
     // Variants: size + color
     if (sizes.length > 0 || colors.length > 0) {
@@ -70,24 +86,20 @@ export function useFilteredProducts() {
 
     let sortValue: string[] = []
     switch (sortBy) {
-        case "newest":
-            sortValue = ["createdAt:desc"]
-            break
-        case "price-low":
-            sortValue = [
-                "price:asc",
-            ]
-            break
-        case "price-high":
-            sortValue = [
-                "price:desc",
-            ]
-            break
-        case "popular":
-            sortValue = ["popularity:desc"]
-            break
-        default:
-            sortValue = []
+      case 'newest':
+        sortValue = ['createdAt:desc']
+        break
+      case 'price-low':
+        sortValue = ['price:asc']
+        break
+      case 'price-high':
+        sortValue = ['price:desc']
+        break
+      case 'popular':
+        sortValue = ['popularity:desc']
+        break
+      default:
+        sortValue = []
     }
 
     return { filters: f, sort: sortValue }
@@ -137,7 +149,7 @@ export function useFilteredProducts() {
       const { data, errors } = await graphqlFetch<FilteredProductsResponse>(query, {
         filters,
         pagination: { page: currentPage, pageSize: 12 },
-        sort
+        sort,
       })
 
       if (errors) {
