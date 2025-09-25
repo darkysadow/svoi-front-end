@@ -32,10 +32,14 @@ const GET_SEASON_BY_SLUG_QUERY = `
           price
           slug
           variant {
-            color
             quantity
-            size
             id
+            size {
+              size
+            }
+            color {
+              color
+            }
           }
           photo {
             alternativeText
@@ -63,9 +67,13 @@ interface Tag {
 }
 
 export interface ProductVariant {
-  color: string
+  size: {
+    size: string
+  }
+  color: {
+    color: string
+  }
   quantity: number
-  size: string
   id: string
 }
 

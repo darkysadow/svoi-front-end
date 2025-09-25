@@ -24,8 +24,8 @@ export function FeaturedProducts() {
       name: product.name,
       price: product.price,
       image: product.photo?.url,
-      color: defaultColor,
-      size: defaultSize,
+      color: defaultColor.color,
+      size: defaultSize.size,
       quantity: 1,
     })
   }
@@ -109,10 +109,10 @@ export function FeaturedProducts() {
 
                 <div className="text-xs text-muted-foreground">
                   <div className="mb-1">
-                    {t("product.colors")}: {product.variant.map((v) => v.color).join(", ")}
+                    {t("product.colors")}: {product.variant.map((v) => v.color?.color || '').join(", ")}
                   </div>
                   <div>
-                    {t("product.sizes")}: {product.variant.map((v) => v.size).join(", ")}
+                    {t("product.sizes")}: {product.variant.map((v) => v.size?.size || '').join(", ")}
                   </div>
                 </div>
               </CardContent>

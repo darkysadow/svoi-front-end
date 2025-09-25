@@ -22,8 +22,12 @@ export const GET_FEATURED_PRODUCTS_QUERY = gql`
           }
         }
         variant {
-          color
-          size
+          size {
+            size
+          }
+          color {
+            color
+          }
         }
         tags {
           name
@@ -48,8 +52,12 @@ interface TagsItem {
 }
 
 interface VariantItem {
-    color: string
+  size: {
     size: string
+  }
+  color: {
+    color: string
+  }
 }
 
 export interface FeaturedProductsItem {

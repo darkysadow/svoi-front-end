@@ -21,8 +21,12 @@ const GET_PRODUCT_BY_SLUG_QUERY = `
       }
       variant {
         id
-        size
-        color
+        size {
+          size
+        }
+        color {
+          color
+        }
         quantity
       }
       supplier {
@@ -77,8 +81,12 @@ export interface ProductPhoto {
 
 interface ProductVariant {
   id: string
-  size: string
-  color: string
+  size: {
+    size: string
+  }
+  color: {
+    color: string
+  }
   quantity: number
 }
 
