@@ -8,17 +8,11 @@ import { CartDrawer } from "@/components/cart/cart-drawer"
 import { AuthDropdown } from "@/components/auth/auth-dropdown"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { Menu, Search } from "lucide-react"
-import { useSeasons } from "@/hooks/use-seasons"
-
-// const seasons = [
-//   { name: "Season 1", slug: "season-1", isNew: true },
-//   { name: "Season 2", slug: "season-2", isNew: false },
-//   { name: "Mix Life", slug: "mix-life", isNew: false },
-// ]
+import { useSeasonLinks } from "@/hooks/use-season-links"
 
 export function Header() {
   const [cartCount] = useState(0)
-  const { seasons, loading, error } = useSeasons()
+  const { seasonsLinks, loading, error } = useSeasonLinks()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,7 +35,7 @@ export function Header() {
             ) : error ? (
               <div className="text-sm text-red-500">Error loading seasons</div>
             ) : (
-              seasons.map((season) => (
+              seasonsLinks.map((season) => (
                 <Link
                   key={season.slug}
                   href={`/season/${season.slug}`}
@@ -91,7 +85,7 @@ export function Header() {
                   ) : error ? (
                     <div className="text-sm text-red-500">Error loading seasons</div>
                   ) : (
-                    seasons.map((season) => (
+                    seasonsLinks.map((season) => (
                       <Link
                         key={season.slug}
                         href={`/season/${season.slug}`}
