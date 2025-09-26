@@ -7,6 +7,7 @@ import { useAboutComponent } from "@/hooks/use-about-component"
 import Preloader from "./ui/preloader"
 import Markdown from 'react-markdown'
 import clsx from "clsx"
+import { sendGTMEvent } from "@next/third-parties/google"
 
 export function AboutBrand() {
   const { t } = useLanguage()
@@ -34,7 +35,7 @@ export function AboutBrand() {
             <div className="space-y-4 text-muted-foreground">
               <Markdown>{aboutSection.description}</Markdown>
             </div>
-            <Button className="mt-8" size="lg">
+            <Button className="mt-8" size="lg" onClick={() => sendGTMEvent({ event: 'buttonClicked', value: 'xyz' })}>
               {t("actions.learnMore")}
             </Button>
           </div>

@@ -9,6 +9,7 @@ import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { CartProvider } from "@/contexts/cart-context"
 import Script from "next/script"
+import { GoogleTagManager } from '@next/third-parties/google'
 
 const inter = Inter({
   subsets: ["latin"],
@@ -59,6 +60,7 @@ export default function RootLayout({
           </LanguageProvider>
         </ThemeProvider>
         <Script src={process.env.NEXT_PUBLIC_TIDIO_SRC} async />
+        <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM || ''} />
       </body>
     </html>
   )
